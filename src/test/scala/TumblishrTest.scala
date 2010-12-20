@@ -6,16 +6,25 @@ import scala.collection.mutable.Stack
 import io.Source
 
 class TumblishrSpec extends Spec with ShouldMatchers {
-  val post = """
-        | # this is my title
-        | this is my content.
-        | tags: some,cool,tags
-        |"""
   describe ("Post Writer") {
     describe("MarkdownPost") {
+      describe ("when file has a title, a content and tags") {
+        it ("should detect this structure") {
+          val post = """
+                    |# this is my title
+                    |this is my content.
+                    |<!-- tags: some,cool,tags -->
+                    |""".stripMargin
+          val expectedTitle = "this is my title"
+          val expectedContent = "this is my content.\n"
+          val expectedTags = Some("some,cool,tags")
+          val lines = Source.fromString(post).getLines
+          assert((expectedTitle, expectedContent, expectedTags) === MarkdownPost.parseLines(lines))
+        }
+      }
       describe ("when file does not exist") {
         it ("should throw a FileNotFoundException") {
-          evaluating {MarkdownPost.parse("/neitherhere/northere")} should produce [java.io.FileNotFoundException]
+          evaluating {MarkdownPost.parseFile("/neitherhere/northere")} should produce [java.io.FileNotFoundException]
         }
       }
       describe ("when post has no title") {
@@ -32,8 +41,32 @@ class TumblishrSpec extends Spec with ShouldMatchers {
                       | this is my content.
                       |""".stripMargin
           val ls = Source.fromString(post).getLines
-          val tags = MarkdownPost.extractTags(ls)
+          val tags = MarkdownPost.extractContent(ls)._2
           tags should be (None)
+        }
+      }
+      describe ("when tags contains non alpha char") {
+        it ("should accept them") {
+          val post = """
+                    |# this is my title
+                    |this is my content.
+                    |<!-- tags: by:hub,code-gen,very_important!,@twitter,money$$$ -->
+                    |""".stripMargin
+          val expectedTags = Some("by:hub,code-gen,very_important!,@twitter,money$$$")
+          val lines = Source.fromString(post).getLines
+          assert(expectedTags === MarkdownPost.parseLines(lines)._3)
+
+        }
+      }
+      describe ("when file is given as a path") {
+        it ("should keep only its basename without extension as slug (human readable end of URL)") {
+          val fp = "/some/where/over/the/rainbow.way"
+          assert("rainbow" === MarkdownPost.slugFromFile(fp))
+        }
+      }
+      describe ("when file is encoded with something else than utf-8") {
+        it ("should be reencoded in UTF-8") {
+          pending
         }
       }
     }
