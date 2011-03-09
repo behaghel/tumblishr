@@ -4,11 +4,13 @@ import io._
 import dispatch._
 import json._
 import Js._
+import Http.builder2product
 
-class ReadBuilder(service: Request, params: Map[String, Any] = Map.empty)
+class ReadBuilder(val service: Request, val params: Map[String, Any] = Map.empty)
     extends Builder[Handler[List[JsObject]]] {
-    
+
   def param(key: String)(value: Any) = new ReadBuilder(service, params + (key -> value))
+  def sparam(key: String)(value: Any) = new ReadBuilder(service, params + (key -> value)) with SecureReading
 
   /** the post offset to start from. Default 0 */
   def start(n: Int) = param("start")_
@@ -33,13 +35,17 @@ class ReadBuilder(service: Request, params: Map[String, Any] = Map.empty)
   def tagged(t: String) = param("tagged")_
   /** returns posts that match query. */
   def search(q: String) = param("search")_
+  /** must be authenticated
+   * @param s Symbole Possible values are: 'submission, 'draft or 'queue
+   */
+  def inState(s: Symbol) = sparam("state")(s.name)
 
   /**
    * because tumblr json apis are not really json...
    * @param in java.io.InputStream the response from Tumblr.
    * @return  JsValue that was parsed.
    */
-  private def tumblrJsonify(in: java.io.InputStream) = {
+  def tumblrJsonify(in: java.io.InputStream) = {
     val s = Source.fromInputStream(in)
     val ls = s.toList
     val jsonStr = ls.slice("var tumblr_api_read = ".length, ls.length - 2).mkString
@@ -49,20 +55,32 @@ class ReadBuilder(service: Request, params: Map[String, Any] = Map.empty)
   def product = (service / "api/read/json" <<? params >> { tumblrJsonify _ }) ~> (list ! obj)
 }
 
+trait SecureReading { self: ReadBuilder =>
+  override def param(key: String)(value: Any) = new ReadBuilder(service, params + (key -> value)) with SecureReading
+  override def product = (service.secure / "api/read/json" << params >> { tumblrJsonify _ }) ~> (list ! obj)
+}
 
-object Tumblishr {
-  val service = dispatch.:/("www.tumblr.com") // had to add "dispatch." because IntelliJ scala plugin couldn't compile without
+class MyTumblr (val username: String) {
 
-  // TODO read and write should be separated as they connect to different service.
-  // moreover, post should follow the same chained logic to be more consistent
-  // ie post.as(user,pwd).markdownFile(myFile).inState(draft)
+  val myService = dispatch.:/(username+".tumblr.com") // scala plugin is a bit young, so I added dispatch.
 
   // read API
-  def read = new ReadBuilder(service)
+  def read = new ReadBuilder(myService)
 
   // some pattern matcher for the read API
   def posts = 'posts ? (list ! obj)
 
+}
+
+object Tumblr {
+  val com = dispatch.:/("www.tumblr.com") // had to add "dispatch." because IntelliJ scala plugin couldn't compile without
+}
+
+object Tumblishr {
+
+  // TODO read and write should be separated as they connect to different service.
+  // moreover, post should follow the same chained logic to be more consistent
+  // ie post.as(user,pwd).markdownFile(myFile).inState(draft)
 
   // write API
   def postMarkdown(email: String, password: String, filePath: String, draft: Boolean = false) = {
@@ -83,7 +101,7 @@ object Tumblishr {
     lazy val state = if (draft) "draft" else "published"
 
     // TODO instead of redirecting on System.out, catch the return post ID and return it
-    service / "api/write" << params >>> System.out
+    Tumblr.com.secure / "api/write" << params >>> System.out
 
   }
 }
@@ -100,7 +118,7 @@ object MarkdownPost {
    * File must be UTF-8 encoded!
    */
   def parseFile(fp: String): (String, String, Option[String]) = {
-    val lines = Source.fromFile(fp, "utf-8").getLines
+    val lines = Source.fromFile(fp, "utf-8").getLines // if I don't specify utf-8, it is not choosen implicitly (?!)
     parseLines(lines)
   }
 
@@ -147,7 +165,7 @@ object MarkdownPost {
   }
 
   lazy val PathFinder = ".*/".r
-  lazy val ExtensionFinder = "\\.[A-Za-z0-9]{1,4}$".r
+  lazy val ExtensionFinder = "\\.[A-Za-z0-9]+$".r
   def slugFromFile(filePath: String) = {
     ExtensionFinder.replaceFirstIn(PathFinder.replaceAllIn(filePath, ""), "")
   }
