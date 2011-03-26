@@ -3,3 +3,5 @@ lib_managed
 *.iml
 target
 .idea
+project/plugins/project
+project/plugins/src_managed

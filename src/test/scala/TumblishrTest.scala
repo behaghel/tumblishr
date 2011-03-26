@@ -1,4 +1,4 @@
-package org.behaghel.tumblishr
+package tumblishr
 
 import org.scalatest.Spec
 import org.scalatest.matchers.ShouldMatchers

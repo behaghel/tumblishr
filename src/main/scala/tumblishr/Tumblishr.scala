@@ -1,4 +1,4 @@
-package org.behaghel.tumblishr
+package tumblishr
 
 import io._
 import dispatch._
@@ -56,13 +56,16 @@ class ReadBuilder(val service: Request, val params: Map[String, Any] = Map.empty
 }
 
 trait SecureReading { self: ReadBuilder =>
-  override def param(key: String)(value: Any) = new ReadBuilder(service, params + (key -> value)) with SecureReading
-  override def product = (service.secure / "api/read/json" << params >> { tumblrJsonify _ }) ~> (list ! obj)
+  override def param(key: String)(value: Any) = 
+    new ReadBuilder(service, params + (key -> value)) with SecureReading
+  override def product = 
+    (service.secure / "api/read/json" << params >> { tumblrJsonify _ }) ~> (list ! obj)
 }
 
 class MyTumblr (val username: String) {
 
-  val myService = dispatch.:/(username+".tumblr.com") // scala plugin is a bit young, so I added dispatch.
+  // IntelliJ scala plugin is a bit young, so I added dispatch.
+  val myService = dispatch.:/(username+".tumblr.com") 
 
   // read API
   def read = new ReadBuilder(myService)
@@ -73,7 +76,8 @@ class MyTumblr (val username: String) {
 }
 
 object Tumblr {
-  val com = dispatch.:/("www.tumblr.com") // had to add "dispatch." because IntelliJ scala plugin couldn't compile without
+  // had to add "dispatch." because IntelliJ scala plugin couldn't compile without
+  val com = dispatch.:/("www.tumblr.com") 
 }
 
 object Tumblishr {
