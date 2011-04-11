@@ -10,6 +10,10 @@ class Project(info: ProjectInfo) extends DefaultProject(info) with ProguardProje
 
   val dispatchDep = "net.databinder" %% "dispatch" % "0.7.8"
 
+  // sadly, the published configgy is pulling in an inexistent vscaladoc version
+  // hence intransitive()
+  val configgyDep = "net.lag" % "configgy" % "2.0.0" intransitive()
+
   val mainClassName = "tumblishr.TumblishrMain"
   override def mainClass = Some(mainClassName)
 

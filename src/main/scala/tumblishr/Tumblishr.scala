@@ -65,7 +65,7 @@ trait SecureReading { self: ReadBuilder =>
 class MyTumblr (val username: String) {
 
   // IntelliJ scala plugin is a bit young, so I added dispatch.
-  val myService = dispatch.:/(username+".tumblr.com") 
+  val myService = :/(username+".tumblr.com") 
 
   // read API
   def read = new ReadBuilder(myService)
@@ -77,7 +77,7 @@ class MyTumblr (val username: String) {
 
 object Tumblr {
   // had to add "dispatch." because IntelliJ scala plugin couldn't compile without
-  val com = dispatch.:/("www.tumblr.com") 
+  val com = :/("www.tumblr.com") 
 }
 
 object Tumblishr {
