@@ -1,0 +1,8 @@
+
+# Un nouveau blog est né !
+
+Scala rocks! Then when you said it, what's the need to say anything else?
+Just stop blogging and start coding.
+
+<!-- tags: test,scala,ok -->
+<!-- vim: set tw=56: -->
