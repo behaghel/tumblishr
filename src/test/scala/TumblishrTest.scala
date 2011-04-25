@@ -5,6 +5,8 @@ import org.scalatest.matchers.ShouldMatchers
 import scala.collection.mutable.Stack
 import io.Source
 
+import Tumblishr._
+
 // TODO separate internal Specs from public ones.
 class TumblishrSpec extends Spec with ShouldMatchers {
   describe("MarkdownPost") {

@@ -1,6 +1,7 @@
 package tumblishr
 
 import dispatch._
+import Tumblishr._
 
 object TumblishrMain {
 
@@ -8,46 +9,32 @@ object TumblishrMain {
 
     val (command, userOpt) = getOpt(args)
 
-    
-    // Lazy vals: we don't want to initalize them in case of error or local command.
-    lazy val pass =
-      if (userOpt.isDefined)
-        askPass()
-      else
-        Config.pass().getOrElse({ error(NoUserPassword); "" })
-    lazy val user = userOpt.getOrElse(Config.user().
-      getOrElse({ error(NoUserPassword); "" }))
-
-    lazy val http = new Http
+    implicit val lp = LoginPassword(userOpt)
 
     command match {
-      case Publish(postFile, draft) =>
-        http(Tumblishr.postMarkdown(user, pass, postFile, draft))
-      case Usage => println(usage)
-      case _ => error(UnsupportedOperation)
+      case lc: LocalCommand => lc.execute()
+      case rc: RemoteCommand => rc.execute()
     }
   }
 
-  def askPass(): String = {
-    print("Password: ")
-    readLine()
-  }
+  case class LoginPassword(u: Option[String]) extends Session {
 
-  def usage = {
-    val text = "To publish a post:" ::
-      "\ttum [-u <user>] [--force] <file>" ::
-      "To list posts:" ::
-      "\ttum [-u <user>] -l [-r [<type>[ <status>]]]" ::
-      "To print diff between local and tumblr" ::
-      "\ttum [-u <user>] -d" ::
-      "To get remote post into local file:" ::
-      "\ttum [-u <user>] -g <file>" ::
-      "To commit a local change to a remote post:" ::
-      "\ttum [-u <user>] -c <file>" :: 
-      "To print this help:" ::
-      "\ttum -h" ::
-      Nil
-    text.mkString("\n")
+    val password =
+      if (u.isDefined)
+        askPass()
+      else
+        Config.pass().getOrElse(exitNoUserPass)
+
+    val username = u.getOrElse(Config.user().getOrElse(exitNoUserPass))
+
+    // XXX must be lzy otherwise will exit process at evaluation.
+    lazy val exitNoUserPass = { error(NoUserPassword); "" }
+
+    def askPass(): String = {
+      print("Password: ")
+      readLine()
+    }
+
   }
 
   def getOpt(args: Array[String]): (Command, Option[String]) = {
@@ -89,14 +76,56 @@ object TumblishrMain {
     }
 
   sealed trait Command
-  case class Publish(filename: String, draft: Boolean) extends Command
-  case object ListLocal extends Command
-  case class ListRemote(kind: PostKind, state: PostState) extends Command
-  case object Diff extends Command
-  case class Commit(filename: String) extends Command
-  case class Get(filename: String) extends Command
-  case object Usage extends Command
-  case class Error(rc: ReturnCode) extends Command
+  trait LocalCommand extends Command {
+    def execute()
+  }
+  trait RemoteCommand extends Command {
+    def execute()(implicit s: Session)
+  }
+  trait TodoCommand extends LocalCommand {
+    def execute() {
+      error(UnsupportedOperation)
+    }
+  }
+  case object Usage extends LocalCommand {
+    def execute() {
+      println(usage)
+    }
+  }
+  case object ListLocal extends TodoCommand // TODO LocalCommand
+  case class Error(rc: ReturnCode) extends LocalCommand {
+    def execute() {
+      error(rc)
+    }
+  }
+
+  case class Publish(filename: String, draft: Boolean) extends RemoteCommand {
+    def execute()(implicit s: Session) {
+      val http = new Http
+      http(postMarkdown(filename, draft))
+    }
+  }
+  case class ListRemote(kind: PostKind, state: PostState) extends TodoCommand // TODO RemoteCommand
+  case object Diff extends TodoCommand // TODO RemoteCommand
+  case class Commit(filename: String) extends TodoCommand // TODO RemoteCommand
+  case class Get(filename: String) extends TodoCommand // TODO RemoteCommand
+
+  def usage = {
+    val text = "To publish a post:" ::
+      "\ttum [-u <user>] [--force] <file>" ::
+      "To list posts:" ::
+      "\ttum [-u <user>] -l [-r [<type>[ <status>]]]" ::
+      "To print diff between local and tumblr" ::
+      "\ttum [-u <user>] -d" ::
+      "To get remote post into local file:" ::
+      "\ttum [-u <user>] -g <file>" ::
+      "To commit a local change to a remote post:" ::
+      "\ttum [-u <user>] -c <file>" ::
+      "To print this help:" ::
+      "\ttum -h" ::
+      Nil
+    text.mkString("\n")
+  }
 
   sealed trait PostKind
   case object AllKinds extends PostKind
