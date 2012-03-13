@@ -1,4 +1,4 @@
-## tum, a simple command to manage a tumblishr blog.
+## tum, a simple command to manage a tumblr blog.
 
 This is a command line tool written in scala. The purpose is to let you manage
 your Tumblr blog more or less like a git repository. Your posts are markdown
