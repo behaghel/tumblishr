@@ -113,6 +113,7 @@ object Tumblishr {
 
     lazy val state = if (draft) "draft" else "published"
 
+    println("Posting on behalf of %s [%s]".format(s.username, s.password))
     // TODO instead of redirecting on System.out, catch the return post ID and return it
     Tumblr.com.secure / "api/write" << params as_str
 

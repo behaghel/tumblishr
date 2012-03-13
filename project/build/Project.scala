@@ -12,7 +12,9 @@ class Project(info: ProjectInfo) extends DefaultProject(info) with ProguardProje
 
   // sadly, the published configgy is pulling in an inexistent vscaladoc version
   // hence intransitive()
-  val configgyDep = "net.lag" % "configgy" % "2.0.0" intransitive()
+  //val configgyDep = "net.lag" % "configgy" % "2.0.0" intransitive()
+  // in the end, I had to fork configgy to make it usable here...
+  // Typesafe config tool may be a could choice here.
 
   val mainClassName = "tumblishr.TumblishrMain"
   override def mainClass = Some(mainClassName)
@@ -79,6 +81,7 @@ class Project(info: ProjectInfo) extends DefaultProject(info) with ProguardProje
     """-keepclassmembers class com.thoughtworks.paranamer.DefaultParanamer { 
       java.lang.String __PARANAMER_DATA; 
     }""" ::
+    "-libraryjars lib/configgy-2.0.3-SNAPSHOT.jar" ::
     proguardKeepMain(mainClassName) ::
     Nil
     

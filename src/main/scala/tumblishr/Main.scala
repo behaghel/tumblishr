@@ -28,6 +28,8 @@ object TumblishrMain {
     val username = u.getOrElse(Config.user().getOrElse(exitNoUserPass))
 
     // XXX must be lzy otherwise will exit process at evaluation.
+    // FIXME remove me and replace me with a simple throwing of an exception
+    // this is a matter of style...
     lazy val exitNoUserPass = { error(NoUserPassword); "" }
 
     def askPass(): String = {
