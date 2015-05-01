@@ -1,6 +1,6 @@
 package tumblishr
 
-import dispatch._
+import dispatch.classic._
 import Tumblishr._
 
 object TumblishrMain {
@@ -164,15 +164,18 @@ object TumblishrMain {
   }
 
   object Config {
-    import net.lag.configgy.Configgy
+    import com.typesafe.config.ConfigFactory
+    import scala.util.Try
+
     val filename = System.getProperty("user.home") + "/.tumblishrc"
+    val file = new java.io.File(filename)
     // TODO what if file does not exists
 
-    lazy val config = { Configgy.configure(filename); Configgy.config }
+    lazy val config = ConfigFactory.parseFile(file)
 
-    def pass(): Option[String] = config.getString("pass")
+    def pass(): Option[String] = Try(config.getString("pass")).toOption
 
-    def user(): Option[String] = config.getString("user")
+    def user(): Option[String] = Try(config.getString("user")).toOption
 
   }
 }

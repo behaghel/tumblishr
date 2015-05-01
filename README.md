@@ -39,16 +39,8 @@ I use it this way:
  3.  then I review, optionally correct it and publish it via tumblr web ui.
  4.  then I resync local with online version: `$ tum -u me -g post.md`
 
-NB: this project requires some more hacking to be really useful. Contact me if
-you are interested in it.
+## Please Note
 
-## Under the hood
+This project requires some more hacking to be really useful. Contact me if
+you are interested in it. PR welcome of course.
 
-This project uses [dispatch][dispatch], [configgy][configgy] (a custom version),
-[scalatest][scalatest] and [proguard][proguard] in order to have a lightweight 
-command tool.
-
-[dispatch]: http://dispatch.databinder.net/Dispatch.html
-[configgy]: https://github.com/robey/configgy
-[scalatest]: http://www.scalatest.org/
-[proguard]: http://proguard.sourceforge.net/

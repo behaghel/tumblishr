@@ -1,11 +1,10 @@
 package tumblishr
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
-import scala.collection.mutable.Stack
 import TumblishrMain._
 
-class MainTest extends Spec with ShouldMatchers {
+class MainTest extends FunSpec with ShouldMatchers {
     val user = "usertest"
     val userOpt = "-u " + user + " "
     val someUser = Some(user)

@@ -1,10 +1,9 @@
 package tumblishr
 
 import io._
-import dispatch._
+import dispatch.classic._
 import json._
 import Js._
-import Http.builder2product
 
 object Tumblishr {
   type Username = String
@@ -15,12 +14,12 @@ object Tumblishr {
     def password: Password
   }
 
-  class ReadBuilder(val service: Request, val params: Map[String, Any] = Map.empty)
+  class ReadBuilder(val service: Request, val params: Map[String, String] = Map.empty)
     extends Builder[Handler[List[JsObject]]] {
 
-    def param(key: String)(value: Any) =
+    def param(key: String)(value: String) =
       new ReadBuilder(service, params + (key -> value))
-    def sparam(key: String)(value: Any) =
+    def sparam(key: String)(value: String) =
       new ReadBuilder(service, params + (key -> value)) with SecureReading
 
     /** the post offset to start from. Default 0 */
@@ -68,7 +67,7 @@ object Tumblishr {
   }
 
   trait SecureReading { self: ReadBuilder =>
-    override def param(key: String)(value: Any) =
+    override def param(key: String)(value: String) =
       new ReadBuilder(service, params + (key -> value)) with SecureReading
     override def product =
       (service.secure / "api/read/json" << params >> { tumblrJsonify _ }) ~> (list ! obj)
@@ -99,11 +98,11 @@ object Tumblishr {
 
     val (title, content, tags) = MarkdownPost.parseFile(filePath)
 
-    lazy val params: Map[String, Any] = Map("email" -> s.username,
+    lazy val params: Map[String, String] = Map("email" -> s.username,
       "password" -> s.password,
       "type" -> "regular",
       "generator" -> "Tumblishr v1.0",
-      "private" -> 0,
+      "private" -> "0",
       "format" -> "markdown",
       "slug" -> MarkdownPost.slugFromFile(filePath),
       "state" -> state,

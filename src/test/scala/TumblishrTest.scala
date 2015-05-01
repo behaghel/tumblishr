@@ -1,14 +1,13 @@
 package tumblishr
 
-import org.scalatest.Spec
+import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
-import scala.collection.mutable.Stack
 import io.Source
 
 import Tumblishr._
 
 // TODO separate internal Specs from public ones.
-class TumblishrSpec extends Spec with ShouldMatchers {
+class TumblishrSpec extends FunSpec with ShouldMatchers {
   describe("MarkdownPost") {
     describe ("when file has a title, a content and tags") {
       it ("should detect this structure") {
